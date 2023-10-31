@@ -1,40 +1,98 @@
-# 🛸 pico-w-base: The Ultimate Starting Point for Earthlings and Proto-X-Appians Alike 🌍
+# `pico-w-blink`: The Cosmic Blinker 🌌
 
-Hey there, humanoids! I'm Zorblatt9, your friendly neighborhood alien from planet Proto-X-App. 🌌 Now, don't freak out; I come in peace and with code! 🖖
+## Table of Contents
 
-## What's Cooking? 🍳
+1. [Introduction](#introduction)
+2. [Getting Started](#getting-started)
+3. [Docker Magic](#docker-magic)
+4. [GitHub Actions: The Space Elevator](#github-actions-the-space-elevator)
+5. [Git Flow for Earthlings, by Joerge Getson](docs/using_git.md)
+6. [Further Reading](#further-reading)
 
-You might be wondering, "What's a cosmically advanced being like myself doing here?" Well, I've traversed the Milky Way to help you earthlings kickstart your Raspberry Pi Pico W projects like a *boss*... or should I say like a *Supreme Overlord of Proto-X-App*? 😏
 
-This repository is your go-to place to start building firmware for the Pico W. It's so easy even a cave...uh, I mean, a brilliant earth scientist like you can do it!
+Hey there, Earthling! Jeorge Getson here, your friendly neighbor from—you guessed it—a place I can't quite disclose (wink, wink). But let's just say it's far, far away and I'm here on a secret mission to simplify your life.
 
-## How Does This Sorcery Work? 🧙‍♂️
+Ever wondered how to make a Raspberry Pi Pico blink like a disco ball at an intergalactic party? Well, you've landed on the right repo! 
 
-1. **Clone the repo**: `git clone https://github.com/proto-x-app/pico-w-base.git`
-2. **Navigate into the directory**: `cd pico-w-base`
-3. **Start building**: Follow the instructions, but basically, run `make` or `cmake` or whatever earthling magic you've got.
+## What's This All About? 🤔
 
-## Let's Get Interlinked, Shall We? 🌐
+This repository is a starter kit for anyone looking to build firmware for the Raspberry Pi Pico. We're using Docker to compile our firmware, GitHub Actions for the deployment, and some good ol' C code for the blinky magic.
 
-Oh, the fun doesn't stop here! This repository is like a single star in a galaxy of awesomeness. If you want to take it to the next level, you've got to check out our `proto-x-app/pico-firmware-generator`.
+## Installation 🛠️
 
-With `pico-firmware-generator`, you can automatically compile firmware from this repo or any other Pico-based repo you've got. It's like creating a black hole, but without the dangerous spacetime-warping side effects!
+1. **Clone this repository**: Yup, just like how we... never mind. Just run this command:
+    ```bash
+    git clone https://github.com/proto-x-app/pico-w-blink.git
+    ```
 
-Here's how:
-- Run `pico-firmware-generator`
-- Point it to this repository
-- Sit back and watch as it clones, compiles, and outputs `.uf2` files ready for flashing to your Pico W!
+2. **Navigate to the project folder**:
+    ```bash
+    cd pico-w-blink
+    ```
 
-## Need Help? 🆘
+3. **Build the Docker image**:
+    ```bash
+    docker build -t pico-builder-image .
+    ```
 
-Having trouble? Got questions? Just hail me on the Intergalactic Help Line (or GitHub issues, whatever works for you). I've got four arms, and I type at the speed of light, so I'll get back to you faster than you can say "Zorblatt9 is the coolest alien ever!"
+4. **Create a Docker container**:
+    ```bash
+    docker create --name pico-builder-container pico-builder-image
+    ```
 
-## Contribute 👾
+5. **Retrieve the `.uf2` file**:
+    ```bash
+    docker cp pico-builder-container:/project/src/build/pico-w-blink.uf2 ./pico-w-blink.uf2
+    ```
 
-You've got the stuff? Great! Feel free to submit a pull request. I might not understand your earth humor, but I sure understand good code!
+## GitHub Actions 🚀
 
-## Now, Go Forth and Build! 🚀
+Whenever you push a new tag, our GitHub Actions workflow will kick in. It'll build the Docker image, compile the firmware, and generate a `.uf2` file. Then, like a cosmic mailman, it'll deliver this file right to the GitHub releases.
 
-Okay, I gotta jet. My spaceship's double-parked, and you don't want to know the cost of a Galactic Parking Ticket. 🚔
+### GitHub Actions for Beginners 🌟
 
-Remember, the sky's NOT the limit. Happy coding, earthlings! 🌠
+Alright, listen up, cadets! GitHub Actions is like your robotic butler. It automates all sorts of GitHub tasks: testing, deploying, you name it. The way it works is pretty nifty. Let me break it down for you:
+
+#### 1. Triggers 🎬
+
+First off, you need something to set the whole machine in motion. In our case, it's pushing a new tag to the repo. This is like ringing the butler's bell; it wakes up GitHub Actions and says, "Hey, we've got work to do!"
+
+#### 2. Workflow File 📜
+
+When the bell rings, GitHub Actions looks for a set of instructions, which you'll find in the `.github/workflows/` directory. It's like a recipe for your butler, telling him exactly what to do step-by-step. We've named ours something pretty straightforward: `deploy-new-version.yml`.
+
+#### 3. Jobs 👷‍♂️
+
+Inside this workflow file, you'll find something called 'jobs'. No, not Steve Jobs, just jobs. These are individual tasks that your butler will carry out. Think of them as chores on a to-do list.
+
+#### 4. Steps 👟
+
+Each job has a series of 'steps', which are the nitty-gritty details. This is where you tell your butler, "First, do this. Then, do that." For example, 'Check out this repository' or 'Build Docker image'.
+
+#### 5. Run Command 🏃‍♂️
+
+In some steps, you'll see a `run` command. This is where you get to boss GitHub Actions around by giving it some shell commands to execute. It's like saying, "Jeeves, fetch my pipe and slippers!"
+
+#### 6. Environment Variables 🌍
+
+Sometimes, you'll need to pass along some extra info. This is where 'env' (short for 'environment variables') comes in. It's like whispering a secret code to your butler that he'll need later on.
+
+#### 7. Release 🎉
+
+At the end of it all, if everything goes smoothly, your butler—ahem, GitHub Actions—will take the freshly baked `.uf2` file and neatly place it in GitHub releases. It's like having your cake and eating it too, but without lifting a finger.
+
+And there you have it! You've just automated your whole build and deploy process without breaking a sweat. GeorgeJetsome would be proud! 🚀
+
+## How It Works 🧙‍♂️
+
+The magic potion is in the `Dockerfile`. This file sets up an environment with all the right ingredients for the Pico SDK and your project's source code. It then compiles the firmware so that you don't have to bother with any local setup. Convenient, huh?
+
+## Questions? 🤷‍♂️
+
+Got questions? Or maybe you've uncovered my true identity? (Please don't). Either way, feel free to open an issue or send a carrier pigeon my way.
+
+Alright, time to jet. Jeorge Getson out! 🚀
+
+## Special thanks
+
+* Shawn Hymel and his wonderful article on getting the toolchain and action workflow up and running. [continuous-deployment-using-docker-and-github-actions](https://www.digikey.com/en/maker/projects/continuous-deployment-using-docker-and-github-actions/d9d18e19361647dbb49070ce6f96c2ea)
