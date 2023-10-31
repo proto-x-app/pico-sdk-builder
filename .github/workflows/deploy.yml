@@ -8,7 +8,7 @@ on:
           
 # Must match the project() name in CMakeLists.txt
 env:
-    APP_NAME: pico-w-blink
+    APP_NAME: blink
     
 # Allow this workflow to write back to the repository
 permissions:
