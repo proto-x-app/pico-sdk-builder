@@ -5,6 +5,7 @@ on:
     push:
         tags:
           - "v*.*.*"
+
     
 # Allow this workflow to write back to the repository
 permissions:
@@ -27,11 +28,11 @@ jobs:
             run: docker create --name pico-builder-container pico-builder-image
             
           - name: Copy out .uf2 file
-            run: docker cp pico-builder-container:/workspace/firmware ./
+            run: docker cp pico-builder-container:/workspace/firmware ./firmware
 
           - name: Push to release
             uses: softprops/action-gh-release@v1
             if: startsWith(github.ref, 'refs/tags/')
             with:
-                files: *.uf2
+                files: ./firmware/*.uf2
                 body_path: CHANGELOG.md
