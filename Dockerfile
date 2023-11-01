@@ -41,12 +41,11 @@ COPY app/ /app/
 # Move the build artifacts to a common workspace
 RUN mkdir -p /workspace/source \
     && mkdir -p /workspace/firmware \
-    && mkdir -p /workspace/html
+    && mkdir -p /workspace/html \ 
+    && mkdir -p /workspace/static 
 
 WORKDIR /workspace
 RUN python3 /app/restructure.py
-#     && mv /pico-app/build/* /workspace/firmware/ \    
-#     && mv /pico-app/* /workspace/source/
 
 # Use an official Python runtime as a parent image
 FROM python:3.13.0a1-alpine3.18
@@ -59,11 +58,14 @@ RUN adduser -D $USERNAME
 WORKDIR /workspace
 COPY --from=builder --chown=$USERNAME:$USERNAME /workspace/source /workspace/source
 COPY --from=builder --chown=$USERNAME:$USERNAME /workspace/firmware /workspace/firmware
+COPY --from=builder --chown=$USERNAME:$USERNAME /workspace/static /workspace/static
+
+WORKDIR /app
+COPY --chown=$USERNAME:$USERNAME app/ /app/
 COPY --from=builder --chown=$USERNAME:$USERNAME /workspace/html /app/html
+COPY --from=builder --chown=$USERNAME:$USERNAME /workspace/static /app/static
 
 # Copy Flask app to /app directory
-COPY --chown=$USERNAME:$USERNAME app/ /app/
-WORKDIR /app
 
 # Switch to non-root user
 USER $USERNAME

@@ -6,6 +6,32 @@ import hashlib
 import datetime
 import platform
 
+def simple_md_to_html(md_text, css_path):
+    html_text = f"""<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="{css_path}">
+</head>
+<body>
+"""
+    for line in md_text.split("\n"):
+        if line.startswith("### "):
+            html_text += f"<h3>{line[4:]}</h3>\n"
+        elif line.startswith("## "):
+            html_text += f"<h2>{line[3:]}</h2>\n"
+        elif line.startswith("# "):
+            html_text += f"<h1>{line[2:]}</h1>\n"
+        elif line.startswith("- "):
+            html_text += f"<li>{line[2:]}</li>\n"
+        else:
+            html_text += f"<p>{line}</p>\n"
+
+    html_text += """
+</body>
+</html>
+"""
+    return html_text
+
 
 class Restructure:
 
@@ -45,6 +71,20 @@ class Restructure:
 
                     file_hash = self.calculate_hash(dest)
                     self.hash_txt.append(f"{filename} hash: {file_hash}")
+
+        for dirpath, dirnames, filenames in os.walk("/pico-app"):
+            for filename in filenames:
+                if filename == 'README.md':
+                    md_filepath = os.path.join(dirpath, filename)
+                    html_dest = os.path.join('/workspace/static', 'rtfm.html')
+
+                    with open(md_filepath, 'r', encoding='utf-8') as f:
+                        text = f.read()
+
+                    html_text = simple_md_to_html(text, '/app/static/styles.css')
+                    
+                    with open(html_dest, 'w', encoding='utf-8') as f:
+                        f.write(html_text)
 
     def move_source_files(self):
         print("Moving source files...")
