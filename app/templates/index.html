@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Firmware Files</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body id="jetsons-theme">
+
+    <header>
+        <h1>Welcome to Humongous Pico Nut Co. 🌌</h1>
+        <h2>Employee on Duty: Jeorge Getson</h2>
+        <p>Your friendly space nut who's nuts about making sure your order is out of this world... before Mr. Zorblatt finds out!</p>
+        <div class="info-box">
+            <pre id="build-info">{{ build_info }}</pre>
+        </div>
+    </header>    
+
+    <section id="guidance-section">
+        <h2>Guidance Panel</h2>
+        <p>Welcome, Earthlings and fellow space nuts! Below you'll find critical files and firmware you might need for your next cosmic adventure.</p>
+        <div class="info-box">
+            <pre id="hash-howto">{{ hash_howto }}</pre>
+        </div>
+    </section>
+
+    <section id="check-files-section">
+        <h2>Integrity and Info Files</h2>
+        <ul id="info-files-list">
+            {% for file in info_files %}
+            <li><a href="{{ url_for('serve_file', filename=file) }}">{{ file }}</a></li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <section id="nukes-section">
+        <h2>Nukes (Handle with Care!)</h2>
+        <ul id="nuke-files-list">
+            {% for file in nuke_files %}
+            <li><a href="{{ url_for('serve_file', filename=file) }}">{{ file }}</a></li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <section id="firmware-section">
+        <h2>Available Firmware Files</h2>
+        <ul id="uf2-files-list">
+            {% for file in uf2_files %}
+            <li><a href="{{ url_for('serve_file', filename=file) }}">{{ file }}</a></li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+</body>
+</html>

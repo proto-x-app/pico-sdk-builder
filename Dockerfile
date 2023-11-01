@@ -1,48 +1,85 @@
-# Fetch ubuntu image
+# Use an official Ubuntu as a builder image
 FROM ubuntu:23.10 AS builder
 
-# Update, install necessary packages, and clean up in a single step to reduce layer size
-RUN apt-get update && \
-    apt-get install -y git cmake gcc-arm-none-eabi libstdc++-arm-none-eabi-newlib build-essential python3 python3-pip && \
-    apt-get autoremove -y && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Set environment variables for SDK and APP repository
+ARG SDK_REPOSITORY=https://github.com/raspberrypi/pico-sdk.git
+ARG APP_REPOSITORY=https://github.com/raspberrypi/pico-examples.git
 
-# Clone the pico-sdk repository and checkout a stable version
-RUN git clone https://github.com/raspberrypi/pico-sdk.git \
-    && cd pico-sdk \
+# Install necessary packages in a single RUN command to reduce image size
+RUN apt-get update \
+    && apt-get install -y \
+        git \
+        cmake \
+        gcc-arm-none-eabi \
+        libstdc++-arm-none-eabi-newlib \
+        build-essential \
+        python3 \
+        python3-pip \
+    && apt-get autoremove -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Clone, build, and install the pico-sdk
+WORKDIR /pico-sdk
+RUN git clone $SDK_REPOSITORY . \
     && git submodule update --init
 
 # Set PICO_SDK_PATH environment variable
 ENV PICO_SDK_PATH=/pico-sdk
 
-# Clone the pico-examples repository
-RUN git clone https://github.com/raspberrypi/pico-examples.git
+# Clone and build the pico-app
+WORKDIR /pico-app
+RUN git clone $APP_REPOSITORY . \
+    && mkdir build \
+    && cd build \
+    && cmake .. \
+    && make
 
-# Set the working directory to the pico-examples folder
-WORKDIR /pico-examples
+# Copy Flask app to /app directory
+COPY app/ /app/
 
-# Run the build process
-RUN mkdir build && cd build && cmake .. && make
+# Move the build artifacts to a common workspace
+RUN mkdir -p /workspace/source \
+    && mkdir -p /workspace/firmware \
+    && mkdir -p /workspace/html
 
 WORKDIR /workspace
-RUN mv /pico-examples/build /workspace/firmware \
-    && mkdir /workspace/examples \
-    && mv /pico-examples /workspace/examples 
+RUN python3 /app/restructure.py
+#     && mv /pico-app/build/* /workspace/firmware/ \    
+#     && mv /pico-app/* /workspace/source/
 
-## Build the final image    
-# Use Python Alpine as the base image
+# Use an official Python runtime as a parent image
 FROM python:3.13.0a1-alpine3.18
 
-# Create workspace, firmware, and examples directories
+# Create a non-root user and switch to it
+ARG USERNAME=JoergeGetson
+RUN adduser -D $USERNAME
+
+# Set the working directory and copy build artifacts
 WORKDIR /workspace
+COPY --from=builder --chown=$USERNAME:$USERNAME /workspace/source /workspace/source
+COPY --from=builder --chown=$USERNAME:$USERNAME /workspace/firmware /workspace/firmware
+COPY --from=builder --chown=$USERNAME:$USERNAME /workspace/html /app/html
 
-# Copy the build artifacts from the builder image
-COPY --from=builder /workspace /workspace
+# Copy Flask app to /app directory
+COPY --chown=$USERNAME:$USERNAME app/ /app/
+WORKDIR /app
 
-# # Copy app.py into the image
-# COPY app.py /workspace
+# Switch to non-root user
+USER $USERNAME
 
-# # Entry point or CMD depending on your use-case
-# CMD ["python", "app.py"]
+# Switch back to root to install dependencies
+USER root
+RUN pip install --no-cache-dir -r requirements.txt \
+    && pip install gunicorn==21.2.0
 
+# Switch back to non-root user for better security
+USER $USERNAME
+
+# Declare volumes and expose ports
+VOLUME ["/workspace/firmware"]
+VOLUME ["/workspace/source"]
+EXPOSE 8000
+
+# Run gunicorn to serve the Flask app
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8000", "main:app"]
