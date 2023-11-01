@@ -8,27 +8,38 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Install Pico SDK
-RUN \
-    mkdir -p /project/src/ && \
-    cd /project/ && \
-    git clone https://github.com/raspberrypi/pico-sdk.git --branch master && \
-    cd pico-sdk/ && \
-    git submodule update --init && \
-    cd /
-    
-# Set the Pico SDK environment variable
-ENV PICO_SDK_PATH=/project/pico-sdk/
+# Clone the pico-sdk repository and checkout a stable version
+RUN git clone https://github.com/raspberrypi/pico-sdk.git \
+    && cd pico-sdk \
+    && git submodule update --init
 
-# Copy in our source files
-COPY src/* /project/src/
+# Set PICO_SDK_PATH environment variable
+ENV PICO_SDK_PATH=/pico-sdk
 
-# Build project
-RUN \
-    mkdir -p /project/src/build && \
-    cd /project/src/build && \
-    cmake .. && \
-    make
-    
-# Command that will be invoked when the container starts
-ENTRYPOINT ["/bin/bash"]
+# Clone the pico-examples repository
+RUN git clone https://github.com/raspberrypi/pico-examples.git
+
+# Set the working directory to the pico-examples folder
+WORKDIR /pico-examples
+
+# Run the build process
+RUN mkdir build && cd build && cmake .. && make
+
+## Build the final image    
+# Use Python Alpine as the base image
+FROM python:3.13.0a1-alpine3.18
+
+# Create workspace, firmware, and examples directories
+WORKDIR /workspace
+RUN mkdir /workspace/firmware
+RUN mkdir /workspace/examples
+
+# Copy the build artifacts from the builder image
+COPY --from=builder /pico-examples /pico-examples
+
+# Copy app.py into the image
+COPY app.py /workspace
+
+# Entry point or CMD depending on your use-case
+CMD ["python", "app.py"]
+
