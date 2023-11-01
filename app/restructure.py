@@ -81,7 +81,7 @@ class Restructure:
                     with open(md_filepath, 'r', encoding='utf-8') as f:
                         text = f.read()
 
-                    html_text = simple_md_to_html(text, '/app/static/styles.css')
+                    html_text = simple_md_to_html(text, 'styles.css')
                     
                     with open(html_dest, 'w', encoding='utf-8') as f:
                         f.write(html_text)

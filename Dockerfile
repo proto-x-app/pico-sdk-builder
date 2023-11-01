@@ -3,7 +3,7 @@ FROM ubuntu:23.10 AS builder
 
 # Set environment variables for SDK and APP repository
 ARG SDK_REPOSITORY=https://github.com/proto-x-app/pico-sdk.git
-ARG APP_REPOSITORY=https://github.com/proto-x-app/pico-app-template.git
+ARG APP_REPOSITORY=https://github.com/proto-x-app/pico-examples.git
 
 # Install necessary packages in a single RUN command to reduce image size
 RUN apt-get update \
@@ -44,7 +44,6 @@ RUN mkdir -p /workspace/source \
     && mkdir -p /workspace/html \ 
     && mkdir -p /workspace/static 
 
-WORKDIR /workspace
 RUN python3 /app/restructure.py
 
 # Use an official Python runtime as a parent image
@@ -84,4 +83,4 @@ VOLUME ["/workspace/source"]
 EXPOSE 8000
 
 # Run gunicorn to serve the Flask app
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:8000", "main:app"]
+ENTRYPOINT ["gunicorn", "-w", "4", "-b", "0.0.0.0:8000", "main:app"]
