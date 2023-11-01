@@ -2,8 +2,8 @@
 FROM ubuntu:23.10 AS builder
 
 # Set environment variables for SDK and APP repository
-ARG SDK_REPOSITORY=https://github.com/raspberrypi/pico-sdk.git
-ARG APP_REPOSITORY=https://github.com/raspberrypi/pico-examples.git
+ARG SDK_REPOSITORY=https://github.com/proto-x-app/pico-sdk.git
+ARG APP_REPOSITORY=https://github.com/proto-x-app/pico-app-template.git
 
 # Install necessary packages in a single RUN command to reduce image size
 RUN apt-get update \
