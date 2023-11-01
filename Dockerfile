@@ -25,21 +25,24 @@ WORKDIR /pico-examples
 # Run the build process
 RUN mkdir build && cd build && cmake .. && make
 
+WORKDIR /workspace
+RUN mv /pico-examples/build /workspace/firmware \
+    && mkdir /workspace/examples \
+    && mv /pico-examples /workspace/examples 
+
 ## Build the final image    
 # Use Python Alpine as the base image
 FROM python:3.13.0a1-alpine3.18
 
 # Create workspace, firmware, and examples directories
 WORKDIR /workspace
-RUN mkdir /workspace/firmware
-RUN mkdir /workspace/examples
 
 # Copy the build artifacts from the builder image
-COPY --from=builder /pico-examples /pico-examples
+COPY --from=builder /workspace /workspace
 
-# Copy app.py into the image
-COPY app.py /workspace
+# # Copy app.py into the image
+# COPY app.py /workspace
 
-# Entry point or CMD depending on your use-case
-CMD ["python", "app.py"]
+# # Entry point or CMD depending on your use-case
+# CMD ["python", "app.py"]
 

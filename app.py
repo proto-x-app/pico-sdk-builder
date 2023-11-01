@@ -23,22 +23,22 @@ def copy_firmwares(src_directory, dest_directory):
 
     return uf2_files
 
-def copy_examples(src_directory, dest_directory, uf2_files):
-    if not os.path.exists(dest_directory):
-        os.makedirs(dest_directory)
+# def copy_examples(src_directory, dest_directory, uf2_files):
+#     if not os.path.exists(dest_directory):
+#         os.makedirs(dest_directory)
 
-    with ThreadPoolExecutor() as executor:
-        for root, dirs, files in os.walk(src_directory):
-            if '.git' in root or '.github' in root or 'build' in root:
-                continue
-            dir_name = os.path.basename(root)
-            if dir_name in uf2_files and ('CMakeLists.txt' in files):
-                rel_path = os.path.relpath(root, src_directory)
-                dest_path = os.path.join(dest_directory, rel_path)
+#     with ThreadPoolExecutor() as executor:
+#         for root, dirs, files in os.walk(src_directory):
+#             if '.git' in root or '.github' in root or 'build' in root:
+#                 continue
+#             dir_name = os.path.basename(root)
+#             if dir_name in uf2_files and ('CMakeLists.txt' in files):
+#                 rel_path = os.path.relpath(root, src_directory)
+#                 dest_path = os.path.join(dest_directory, rel_path)
                 
-                executor.submit(shutil.copytree, root, dest_path, dirs_exist_ok=True)
-                print(f"Copied example directory: {root} to {dest_path}")
+#                 executor.submit(shutil.copytree, root, dest_path, dirs_exist_ok=True)
+#                 print(f"Copied example directory: {root} to {dest_path}")
 
 if __name__ == "__main__":
     uf2_files = copy_firmwares("/pico-examples/build", "/workspace/firmware")
-    copy_examples("/pico-examples", "/workspace/examples", uf2_files)
+    # copy_examples("/pico", "/workspace/examples", uf2_files)
