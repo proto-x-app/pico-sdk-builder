@@ -1,31 +1,35 @@
-# `pico-w-base`: Web-Enabled Cosmic Firmware Deployment 🌌
+# `pico-builder`: Web-Enabled Firmware Deployment
 
 ## Table of Contents
 
 1. [Introduction](#introduction)
-2. [Getting Started](#getting-started)
-3. [Docker Magic: Now with Web UI](#docker-magic-now-with-web-ui)
-4. [GitHub Actions: The Cosmic Mailman](#github-actions-the-cosmic-mailman)
-5. [How It Works](#how-it-works)
-6. [Questions?](#questions)
-7. [Special Thanks](#special-thanks)
+2. [Setup and Installation](#setup-and-installation)
+3. [Docker Integration](#docker-integration)
+4. [Automated Deployment with GitHub Actions](#automated-deployment-with-github-actions)
+5. [System Overview](#system-overview)
+6. [Support and Feedback](#support-and-feedback)
+7. [Acknowledgments](#acknowledgments)
 
 ## Introduction
 
-Hey there, Earthling! Jeorge Getson here, your friendly neighbor from—you guessed it—a place I can't quite disclose (wink, wink). I'm back with an even more exciting mission to simplify your life. This repository is now equipped with a web interface to access your firmware files. Mind-blowing, right?
+Welcome to the `pico-builder` project, a robust solution for web-enabled firmware deployment. This platform provides an intuitive web interface to seamlessly access and deploy your firmware files.
 
-## Getting Started 🛠️
+## Setup and Installation
 
-### Installation
+### Pre-requisites
 
-1. **Clone this repository**:
+Ensure you have Docker installed on your system.
+
+### Steps
+
+1. **Clone the repository**:
     ```bash
-    git clone https://github.com/proto-x-app/pico-w-base.git
+    git clone https://github.com/proto-x-app/pico-builder.git
     ```
 
-2. **Navigate to the project folder**:
+2. **Navigate to the project directory**:
     ```bash
-    cd pico-w-base
+    cd pico-builder
     ```
 
 3. **Build the Docker image**:
@@ -33,39 +37,39 @@ Hey there, Earthling! Jeorge Getson here, your friendly neighbor from—you gues
     docker build -t pico-builder-image .
     ```
 
-4. **Run the Docker container**:
+4. **Start the Docker container**:
     ```bash
     docker run --rm -it -p 8000:8000 pico-builder-image
     ```
 
-5. **Access the Web Interface**: Open your browser and navigate to `http://localhost:8000/` to download your `.uf2` files.
+5. **Access the Web Interface**: Launch your browser and head to `http://localhost:8000/` to retrieve your `.uf2` files.
 
-## Docker Magic: Now with Web UI 🌐
+## Docker Integration
 
-This project uses Docker to not only encapsulate the build environment and dependencies but also to serve your `.uf2` files right from the container. It's like having your own cosmic firmware cloud!
+This project harnesses Docker to encapsulate the build environment and its dependencies. Additionally, it serves the `.uf2` files directly from the container. Docker ensures a consistent development environment for all users.
 
 ### Why Docker?
 
-Docker makes it ridiculously easy to set up your development environment, ensuring that everyone has the same setup and dependencies. It's like creating a cosmic sandbox where all your tools float in perfect harmony.
+Docker streamlines the development environment setup, ensuring consistency across different setups. It provides an isolated environment where all required tools and dependencies coexist without conflicts.
 
-## GitHub Actions: The Cosmic Mailman 🌌
+## Automated Deployment with GitHub Actions
 
-Push a new tag, and our cosmic mailman, GitHub Actions, will kick in. It will build the Docker image, compile your firmware, and generate `.uf2` files. These files are then teleported into a new GitHub release. It's intergalactically efficient!
+Leverage the power of GitHub Actions to automate your deployment. Upon pushing a new tag, GitHub Actions initiates a process to build the Docker image, compile the firmware, and subsequently generate `.uf2` files. These files are then automatically attached to a new GitHub release.
 
-### Triggers, Jobs, and Steps
+### Configuration Details
 
-For a deep dive into the cosmic machinery of GitHub Actions, refer to the original README section on ["GitHub Actions for Beginners 🌟"](https://github.com/proto-x-app/pico-w-base#github-actions-for-beginners-).
+For an in-depth understanding of the GitHub Actions setup and its intricacies, refer to the detailed section on ["GitHub Actions Configuration"](https://github.com/proto-x-app/pico-builder#github-actions-configuration).
 
-## How It Works 🧙‍♂️
+## System Overview
 
-The `Dockerfile` sets up an environment with the Pico SDK, your source code, and a Flask web application. The Flask app serves your `.uf2` files on a web interface, accessible at `http://localhost:8000/`. No more local setup woes!
+The provided `Dockerfile` configures an environment with the Pico SDK, your source files, and a Flask web application. This Flask application facilitates the web-based interface, available at `http://localhost:8000/`, to access the `.uf2` files.
 
-## Questions? 🤷‍♂️
+## Support and Feedback
 
-Got questions? Or maybe you've uncovered my true identity? (Please don't). Either way, feel free to open an issue or send a carrier pigeon my way.
+Encountered an issue or have suggestions for improvement? Open an issue in the repository, and we'll address it promptly.
 
-## Special Thanks 🌟
+## Acknowledgments
 
-- [Shawn Hymel](https://www.digikey.com/en/maker/projects/continuous-deployment-using-docker-and-github-actions/d9d18e19361647dbb49070ce6f96c2ea) for the original GitHub Actions inspiration.
+- Special thanks to [Shawn Hymel](https://www.digikey.com/en/maker/projects/continuous-deployment-using-docker-and-github-actions/d9d18e19361647dbb49070ce6f96c2ea) for the foundational insights on GitHub Actions.
 
-Alright, time to jet. Jeorge Getson out! 🚀
+Thank you for choosing `pico-builder`. Happy deploying!
