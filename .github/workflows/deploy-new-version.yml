@@ -81,10 +81,6 @@ jobs:
 
       - name: Show the artifact files
         run: ls -la
-        
-      # Unzip the artifact to get the .uf2 files
-      - name: Unzip firmware artifact
-        run: unzip firmware-files.zip
 
       # Create a release and upload all firmware files
       - name: Create Release and Upload Firmware
