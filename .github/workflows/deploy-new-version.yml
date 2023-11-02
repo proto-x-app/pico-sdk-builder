@@ -16,6 +16,7 @@ jobs:
       matrix:
         app_repo: 
           - 'https://github.com/proto-x-app/pico-examples.git'
+          - 'https://github.com/edgeimpulse/firmware-pi-rp2040.git'
           # ... other app repos ...
     
     env:
