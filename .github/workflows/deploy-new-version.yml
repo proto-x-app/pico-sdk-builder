@@ -1,29 +1,34 @@
 name: Deploy New Version
 
-# Only deploy when a new tag is pushed
 on:
   push:
     tags:
       - "v*.*.*"
 
-env:
-  SDK_REPOSITORY: https://github.com/proto-x-app/pico-sdk.git
-  APP_REPOSITORY: https://github.com/proto-x-app/pico-examples.git
-
 # Allow this workflow to write back to the repository
 permissions:
   contents: write
 
-# Build binary and send to releases
 jobs:
-  build-deploy:
+  build:
     runs-on: ubuntu-latest
-    name: Build and deploy
+    strategy:
+      matrix:
+        app_repo: 
+          - 'https://github.com/proto-x-app/pico-examples.git'
+          # ... other app repos ...
+    
     env:
-      DOCKER_IMAGE_NAME: ${{ github.event.repository.name }}
-      DOCKER_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      TAG_NAME: ${{ github.ref_name }}
+      SDK_REPOSITORY: 'https://github.com/proto-x-app/pico-sdk.git'
+      APP_REPOSITORY: ${{ matrix.app_repo }}
+    
     steps:
+      # Extract the name from the APP_REPOSITORY URL
+      - name: Set DOCKER_IMAGE_NAME
+        run: |
+          IMAGE_NAME=$(basename ${{ matrix.app_repo }} .git)
+          echo "DOCKER_IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
+          echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
 
       - name: Check out this repository
         uses: actions/checkout@v2
@@ -37,25 +42,43 @@ jobs:
       - name: Copy out .uf2 file
         run: docker cp pico-builder-container:/app/html/files ./firmware
 
-      - name: Push to release
-        uses: softprops/action-gh-release@v1
+      # Save the .uf2 file as an artifact with a unique name
+      - name: Upload firmware file as artifact
+        uses: actions/upload-artifact@v2
         with:
-          files: ./firmware/*.uf2
+          name: firmware-${{ matrix.app_repo }}
+          path: ./firmware/*.uf2
 
+      # Login to Docker Hub and Push the Docker image
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+          
+      - name: Push Docker image
+        run: |
+          docker tag $DOCKER_IMAGE_NAME ${{ secrets.DOCKERHUB_USERNAME }}/$DOCKER_IMAGE_NAME:latest
+          docker tag $DOCKER_IMAGE_NAME ${{ secrets.DOCKERHUB_USERNAME }}/$DOCKER_IMAGE_NAME:${{ env.TAG_NAME }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/$DOCKER_IMAGE_NAME:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/$DOCKER_IMAGE_NAME:${{ env.TAG_NAME }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v2
+  prepare-release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      # Download all artifacts from the build job
+      - name: Download all artifacts
+        uses: actions/download-artifact@v2
+
+  release:
+    needs: prepare-release
+    runs-on: ubuntu-latest
+    steps:
+      # Create a release and upload all firmware files
+      - name: Create Release and Upload Firmware
+        uses: softprops/action-gh-release@v1
         with:
-          context: .
-          build-args: |
-            SDK_REPOSITORY=${{ env.SDK_REPOSITORY }}
-            APP_REPOSITORY=${{ env.APP_REPOSITORY }}
-          push: true
-          tags: |
-            ${{ env.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:latest
-            ${{ env.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}:${{ env.TAG_NAME }}
+          files: ./**/*.uf2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
