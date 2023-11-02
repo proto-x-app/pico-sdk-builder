@@ -1,34 +1,86 @@
-# Fetch ubuntu image
+# Use an official Ubuntu as a builder image
 FROM ubuntu:23.10 AS builder
 
-# Update, install necessary packages, and clean up in a single step to reduce layer size
-RUN apt-get update && \
-    apt-get install -y git cmake gcc-arm-none-eabi libstdc++-arm-none-eabi-newlib build-essential python3 python3-pip && \
-    apt-get autoremove -y && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Set environment variables for SDK and APP repository
+ARG SDK_REPOSITORY=https://github.com/proto-x-app/pico-sdk.git
+ARG APP_REPOSITORY=https://github.com/proto-x-app/pico-examples.git
 
-# Install Pico SDK
-RUN \
-    mkdir -p /project/src/ && \
-    cd /project/ && \
-    git clone https://github.com/raspberrypi/pico-sdk.git --branch master && \
-    cd pico-sdk/ && \
-    git submodule update --init && \
-    cd /
-    
-# Set the Pico SDK environment variable
-ENV PICO_SDK_PATH=/project/pico-sdk/
+# Install necessary packages in a single RUN command to reduce image size
+RUN apt-get update \
+    && apt-get install -y \
+        git \
+        cmake \
+        gcc-arm-none-eabi \
+        libstdc++-arm-none-eabi-newlib \
+        build-essential \
+        python3 \
+        python3-pip \
+    && apt-get autoremove -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy in our source files
-COPY src/* /project/src/
+# Clone, build, and install the pico-sdk
+WORKDIR /pico-sdk
+RUN git clone $SDK_REPOSITORY . \
+    && git submodule update --init
 
-# Build project
-RUN \
-    mkdir -p /project/src/build && \
-    cd /project/src/build && \
-    cmake .. && \
-    make
-    
-# Command that will be invoked when the container starts
-ENTRYPOINT ["/bin/bash"]
+# Set PICO_SDK_PATH environment variable
+ENV PICO_SDK_PATH=/pico-sdk
+
+# Clone and build the pico-app
+WORKDIR /pico-app
+RUN git clone $APP_REPOSITORY . \
+    && mkdir build \
+    && cd build \
+    && cmake .. \
+    && make
+
+# Copy Flask app to /app directory
+COPY app/ /app/
+
+# Move the build artifacts to a common workspace
+RUN mkdir -p /workspace/source \
+    && mkdir -p /workspace/firmware \
+    && mkdir -p /workspace/html \ 
+    && mkdir -p /workspace/static 
+
+RUN python3 /app/restructure.py
+
+# Use an official Python runtime as a parent image
+FROM python:3.13.0a1-alpine3.18
+
+# Create a non-root user and switch to it
+ARG USERNAME=JoergeGetson
+RUN adduser -D $USERNAME
+
+# Set the working directory and copy build artifacts
+WORKDIR /workspace
+COPY --from=builder --chown=$USERNAME:$USERNAME /workspace/source /workspace/source
+COPY --from=builder --chown=$USERNAME:$USERNAME /workspace/firmware /workspace/firmware
+COPY --from=builder --chown=$USERNAME:$USERNAME /workspace/static /workspace/static
+
+WORKDIR /app
+COPY --chown=$USERNAME:$USERNAME app/ /app/
+COPY --from=builder --chown=$USERNAME:$USERNAME /workspace/html /app/html
+COPY --from=builder --chown=$USERNAME:$USERNAME /workspace/static /app/static
+
+# Copy Flask app to /app directory
+
+# Switch to non-root user
+USER $USERNAME
+
+# Switch back to root to install dependencies
+USER root
+RUN pip install --no-cache-dir -r requirements.txt \
+    && pip install gunicorn==21.2.0
+
+# Switch back to non-root user for better security
+USER $USERNAME
+
+# Declare volumes and expose ports
+VOLUME ["/workspace/firmware"]
+VOLUME ["/workspace/source"]
+EXPOSE 8000
+
+# Run gunicorn to serve the Flask app
+ENTRYPOINT ["gunicorn", "-w", "4", "-b", "0.0.0.0:8000", "main:app"]

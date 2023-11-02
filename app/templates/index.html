@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Humongous Pi Co. Packingslip</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body id="jetsons-theme">
+
+    <header>
+        <h1>Humongous Pi Co. Packingslip 🌌</h1>
+        <h2>Employee on Duty: Jeorge Getson</h2>
+        <p>Your order is ready for a cosmic adventure!</p>
+    </header>    
+    
+    <section id="guidance-section">
+        <h2>Shipping Details</h2>
+        <p>Attention Earthlings and space nuts! Your firmware and files are packed and ready for departure.</p>
+        <div class="info-box">
+            <iframe src="{{ url_for('static', filename='rtfm.html') }}" width="100%" height="300"></iframe>
+        </div>
+    </section>
+
+    <section id="nukes-section">
+        <h2>Handle with Care Items</h2>
+        <ul id="nuke-files-list">
+            {% for file in nuke_files %}
+            <li><a href="{{ url_for('serve_file', filename=file) }}">{{ file }}</a></li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <section id="firmware-section">
+        <h2>Firmware & Software</h2>
+        <ul id="uf2-files-list">
+            {% for file in uf2_files %}
+            <li><a href="{{ url_for('serve_file', filename=file) }}">{{ file }}</a></li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <section id="check-files-section">
+        <h2>Order Contents & Integrity</h2>
+        <ul id="info-files-list">
+            {% for file in info_files %}
+            <li><a href="{{ url_for('serve_file', filename=file) }}">{{ file }}</a></li>
+            {% endfor %}
+        </ul>
+        <div class="info-box">
+            <pre id="hash-howto">{{ hash_howto }}</pre>
+        </div>
+        <div class="info-box">
+            <pre id="build-info">{{ build_info }}</pre>
+        </div>
+    </section>
+
+    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+</body>
+</html>

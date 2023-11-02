@@ -1,33 +1,35 @@
-# `pico-w-blink`: The Cosmic Blinker 🌌
+# `pico-builder`: Web-Enabled Firmware Deployment
 
 ## Table of Contents
 
 1. [Introduction](#introduction)
-2. [Getting Started](#getting-started)
-3. [Docker Magic](#docker-magic)
-4. [GitHub Actions: The Space Elevator](#github-actions-the-space-elevator)
-5. [Git Flow for Earthlings, by Joerge Getson](docs/using_git.md)
-6. [Further Reading](#further-reading)
+2. [Setup and Installation](#setup-and-installation)
+3. [Docker Integration](#docker-integration)
+4. [Automated Deployment with GitHub Actions](#automated-deployment-with-github-actions)
+5. [System Overview](#system-overview)
+6. [Support and Feedback](#support-and-feedback)
+7. [Acknowledgments](#acknowledgments)
 
+## Introduction
 
-Hey there, Earthling! Jeorge Getson here, your friendly neighbor from—you guessed it—a place I can't quite disclose (wink, wink). But let's just say it's far, far away and I'm here on a secret mission to simplify your life.
+Welcome to the `pico-builder` project, a robust solution for web-enabled firmware deployment. This platform provides an intuitive web interface to seamlessly access and deploy your firmware files.
 
-Ever wondered how to make a Raspberry Pi Pico blink like a disco ball at an intergalactic party? Well, you've landed on the right repo! 
+## Setup and Installation
 
-## What's This All About? 🤔
+### Pre-requisites
 
-This repository is a starter kit for anyone looking to build firmware for the Raspberry Pi Pico. We're using Docker to compile our firmware, GitHub Actions for the deployment, and some good ol' C code for the blinky magic.
+Ensure you have Docker installed on your system.
 
-## Installation 🛠️
+### Steps
 
-1. **Clone this repository**: Yup, just like how we... never mind. Just run this command:
+1. **Clone the repository**:
     ```bash
-    git clone https://github.com/proto-x-app/pico-w-blink.git
+    git clone https://github.com/proto-x-app/pico-builder.git
     ```
 
-2. **Navigate to the project folder**:
+2. **Navigate to the project directory**:
     ```bash
-    cd pico-w-blink
+    cd pico-builder
     ```
 
 3. **Build the Docker image**:
@@ -35,64 +37,39 @@ This repository is a starter kit for anyone looking to build firmware for the Ra
     docker build -t pico-builder-image .
     ```
 
-4. **Create a Docker container**:
+4. **Start the Docker container**:
     ```bash
-    docker create --name pico-builder-container pico-builder-image
+    docker run --rm -it -p 8000:8000 pico-builder-image
     ```
 
-5. **Retrieve the `.uf2` file**:
-    ```bash
-    docker cp pico-builder-container:/project/src/build/pico-w-blink.uf2 ./pico-w-blink.uf2
-    ```
+5. **Access the Web Interface**: Launch your browser and head to `http://localhost:8000/` to retrieve your `.uf2` files.
 
-## GitHub Actions 🚀
+## Docker Integration
 
-Whenever you push a new tag, our GitHub Actions workflow will kick in. It'll build the Docker image, compile the firmware, and generate a `.uf2` file. Then, like a cosmic mailman, it'll deliver this file right to the GitHub releases.
+This project harnesses Docker to encapsulate the build environment and its dependencies. Additionally, it serves the `.uf2` files directly from the container. Docker ensures a consistent development environment for all users.
 
-### GitHub Actions for Beginners 🌟
+### Why Docker?
 
-Alright, listen up, cadets! GitHub Actions is like your robotic butler. It automates all sorts of GitHub tasks: testing, deploying, you name it. The way it works is pretty nifty. Let me break it down for you:
+Docker streamlines the development environment setup, ensuring consistency across different setups. It provides an isolated environment where all required tools and dependencies coexist without conflicts.
 
-#### 1. Triggers 🎬
+## Automated Deployment with GitHub Actions
 
-First off, you need something to set the whole machine in motion. In our case, it's pushing a new tag to the repo. This is like ringing the butler's bell; it wakes up GitHub Actions and says, "Hey, we've got work to do!"
+Leverage the power of GitHub Actions to automate your deployment. Upon pushing a new tag, GitHub Actions initiates a process to build the Docker image, compile the firmware, and subsequently generate `.uf2` files. These files are then automatically attached to a new GitHub release.
 
-#### 2. Workflow File 📜
+### Configuration Details
 
-When the bell rings, GitHub Actions looks for a set of instructions, which you'll find in the `.github/workflows/` directory. It's like a recipe for your butler, telling him exactly what to do step-by-step. We've named ours something pretty straightforward: `deploy-new-version.yml`.
+For an in-depth understanding of the GitHub Actions setup and its intricacies, refer to the detailed section on ["GitHub Actions Configuration"](https://github.com/proto-x-app/pico-builder#github-actions-configuration).
 
-#### 3. Jobs 👷‍♂️
+## System Overview
 
-Inside this workflow file, you'll find something called 'jobs'. No, not Steve Jobs, just jobs. These are individual tasks that your butler will carry out. Think of them as chores on a to-do list.
+The provided `Dockerfile` configures an environment with the Pico SDK, your source files, and a Flask web application. This Flask application facilitates the web-based interface, available at `http://localhost:8000/`, to access the `.uf2` files.
 
-#### 4. Steps 👟
+## Support and Feedback
 
-Each job has a series of 'steps', which are the nitty-gritty details. This is where you tell your butler, "First, do this. Then, do that." For example, 'Check out this repository' or 'Build Docker image'.
+Encountered an issue or have suggestions for improvement? Open an issue in the repository, and we'll address it promptly.
 
-#### 5. Run Command 🏃‍♂️
+## Acknowledgments
 
-In some steps, you'll see a `run` command. This is where you get to boss GitHub Actions around by giving it some shell commands to execute. It's like saying, "Jeeves, fetch my pipe and slippers!"
+- Special thanks to [Shawn Hymel](https://www.digikey.com/en/maker/projects/continuous-deployment-using-docker-and-github-actions/d9d18e19361647dbb49070ce6f96c2ea) for the foundational insights on GitHub Actions.
 
-#### 6. Environment Variables 🌍
-
-Sometimes, you'll need to pass along some extra info. This is where 'env' (short for 'environment variables') comes in. It's like whispering a secret code to your butler that he'll need later on.
-
-#### 7. Release 🎉
-
-At the end of it all, if everything goes smoothly, your butler—ahem, GitHub Actions—will take the freshly baked `.uf2` file and neatly place it in GitHub releases. It's like having your cake and eating it too, but without lifting a finger.
-
-And there you have it! You've just automated your whole build and deploy process without breaking a sweat. GeorgeJetsome would be proud! 🚀
-
-## How It Works 🧙‍♂️
-
-The magic potion is in the `Dockerfile`. This file sets up an environment with all the right ingredients for the Pico SDK and your project's source code. It then compiles the firmware so that you don't have to bother with any local setup. Convenient, huh?
-
-## Questions? 🤷‍♂️
-
-Got questions? Or maybe you've uncovered my true identity? (Please don't). Either way, feel free to open an issue or send a carrier pigeon my way.
-
-Alright, time to jet. Jeorge Getson out! 🚀
-
-## Special thanks
-
-* Shawn Hymel and his wonderful article on getting the toolchain and action workflow up and running. [continuous-deployment-using-docker-and-github-actions](https://www.digikey.com/en/maker/projects/continuous-deployment-using-docker-and-github-actions/d9d18e19361647dbb49070ce6f96c2ea)
+Thank you for choosing `pico-builder`. Happy deploying!
