@@ -42,11 +42,17 @@ jobs:
       - name: Copy out .uf2 file
         run: docker cp pico-builder-container:/app/html/files ./firmware
 
-      # Save the .uf2 file as an artifact with a unique name
+      - name: Rename .uf2 files with prefix
+        run: |
+          for file in firmware/*.uf2; do
+            mv "$file" "firmware/${DOCKER_IMAGE_NAME}_$(basename $file)"
+          done
+
+      # Upload the firmware file as an artifact
       - name: Upload firmware file as artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
-          name: firmware-${{ env.DOCKER_IMAGE_NAME }}-${{ env.TAG_NAME }}
+          name: firmware-files
           path: ./firmware/*.uf2
 
       # Login to Docker Hub and Push the Docker image
@@ -63,22 +69,24 @@ jobs:
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/$DOCKER_IMAGE_NAME:latest
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/$DOCKER_IMAGE_NAME:${{ env.TAG_NAME }}
 
-  prepare-release:
+  release:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      # Download all artifacts from the build job
-      - name: Download all artifacts
-        uses: actions/download-artifact@v2
+      # Download the bundled artifact
+      - name: Download firmware artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: firmware-files
 
-  release:
-    needs: prepare-release
-    runs-on: ubuntu-latest
-    steps:
+      # Unzip the artifact to get the .uf2 files
+      - name: Unzip firmware artifact
+        run: unzip firmware-files.zip
+
       # Create a release and upload all firmware files
       - name: Create Release and Upload Firmware
         uses: softprops/action-gh-release@v1
         with:
-          files: ./**/*.uf2
+          files: ./*.uf2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
