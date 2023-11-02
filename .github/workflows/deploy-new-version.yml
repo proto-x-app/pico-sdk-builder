@@ -77,8 +77,11 @@ jobs:
       - name: Download firmware artifact
         uses: actions/download-artifact@v3
         with:
-          name: firmware-files.zip
+          name: firmware-files
 
+      - name: Show the artifact files
+        run: ls -la
+        
       # Unzip the artifact to get the .uf2 files
       - name: Unzip firmware artifact
         run: unzip firmware-files.zip
