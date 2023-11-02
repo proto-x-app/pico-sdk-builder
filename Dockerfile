@@ -46,35 +46,37 @@ RUN mkdir -p /workspace/source \
 
 RUN python3 /app/restructure.py
 
-# Use an official Python runtime as a parent image
-FROM python:3.13.0a1-alpine3.18
+# Start with the official Alpine 3.18.4 image
+FROM alpine:3.18.4 AS final
 
-# Create a non-root user and switch to it
+# Install Python and pip
+RUN apk add --no-cache python3 py3-pip
+
+# Create a non-root user
 ARG USERNAME=JoergeGetson
 RUN adduser -D $USERNAME
+
+# Set up the Python environment
+RUN python3 -m ensurepip && \
+    rm -r /usr/lib/python*/ensurepip && \
+    pip3 install --no-cache --upgrade pip setuptools wheel
 
 # Set the working directory and copy build artifacts
 WORKDIR /workspace
 COPY --from=builder --chown=$USERNAME:$USERNAME /workspace/source /workspace/source
 COPY --from=builder --chown=$USERNAME:$USERNAME /workspace/firmware /workspace/firmware
-COPY --from=builder --chown=$USERNAME:$USERNAME /workspace/static /workspace/static
 
 WORKDIR /app
 COPY --chown=$USERNAME:$USERNAME app/ /app/
 COPY --from=builder --chown=$USERNAME:$USERNAME /workspace/html /app/html
 COPY --from=builder --chown=$USERNAME:$USERNAME /workspace/static /app/static
 
-# Copy Flask app to /app directory
-
-# Switch to non-root user
-USER $USERNAME
-
-# Switch back to root to install dependencies
+# Install the required Python packages
 USER root
 RUN pip install --no-cache-dir -r requirements.txt \
     && pip install gunicorn==21.2.0
 
-# Switch back to non-root user for better security
+# Switch to non-root user for better security
 USER $USERNAME
 
 # Declare volumes and expose ports
