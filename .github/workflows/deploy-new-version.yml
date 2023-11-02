@@ -46,7 +46,7 @@ jobs:
       - name: Upload firmware file as artifact
         uses: actions/upload-artifact@v2
         with:
-          name: firmware-${{ matrix.app_repo }}
+          name: firmware-${{ env.DOCKER_IMAGE_NAME }}-${{ env.TAG_NAME }}
           path: ./firmware/*.uf2
 
       # Login to Docker Hub and Push the Docker image
